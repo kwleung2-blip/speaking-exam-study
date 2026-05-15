@@ -1,730 +1,320 @@
 <!DOCTYPE html>
-<html lang="zh-HK">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>英語詞彙神射手 - Vocab Shooter</title>
+    <title>英文發音字族教學卡牌</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap');
+        
         body {
-            margin: 0;
-            padding: 0;
+            font-family: 'Fredoka', sans-serif;
+            background-color: #f1f5f9;
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 24px 24px;
             overflow: hidden;
-            background-color: #1a202c;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            touch-action: none;
-        }
-        #game-container {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        canvas {
-            background: linear-gradient(to bottom, #2b4162, #fa9c7a);
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-        }
-        .overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
+            position: fixed;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            z-index: 10;
         }
-        .hidden {
-            display: none !important;
+
+        .perspective-container {
+            perspective: 1200px;
         }
-        .weapon-btn {
-            transition: all 0.2s;
+
+        .card-face {
+            backface-visibility: hidden;
+            transform-style: preserve-3d;
+            transform-origin: 50% 24px; 
+            will-change: transform;
         }
-        .weapon-selected {
-            transform: scale(1.2);
-            border-color: #fff !important;
-            box-shadow: 0 0 15px rgba(255,255,255,0.8);
+
+        .binder-ring {
+            box-shadow: 2px 4px 6px rgba(0,0,0,0.3), inset 1px 2px 2px rgba(255,255,255,0.8);
         }
-        .flip-card {
-            perspective: 1000px;
-            width: 120px;
-            height: 60px;
-            position: absolute;
-            cursor: grab;
-            touch-action: none;
+        
+        #lessonGrid::-webkit-scrollbar { display: none; }
+        #homeView {
+            height: 100vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
-        .pop-in {
-            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        @keyframes popIn {
-            from { transform: scale(0.5); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
+
+        .no-select {
+            -webkit-user-select: none;
+            user-select: none;
         }
     </style>
 </head>
-<body>
+<body class="flex flex-col items-center relative overflow-hidden bg-[#f1f5f9]">
 
-<div id="game-container">
-    <canvas id="gameCanvas" width="600" height="800"></canvas>
-
-    <!-- 武器選擇UI -->
-    <div id="weaponBar" class="absolute bottom-4 left-0 w-full flex justify-center gap-6 z-10 hidden">
-        <button id="btnPositive" class="weapon-btn weapon-selected w-16 h-16 rounded-full bg-yellow-400 border-4 border-transparent shadow-lg text-3xl flex items-center justify-center" onclick="selectWeapon('positive', event)">😄</button>
-        <button id="btnNegative" class="weapon-btn w-16 h-16 rounded-full bg-blue-400 border-4 border-transparent shadow-lg text-3xl flex items-center justify-center" onclick="selectWeapon('negative', event)">😢</button>
-    </div>
-
-    <!-- 主題選擇畫面 -->
-    <div id="topicScreen" class="overlay">
-        <h1 class="text-4xl sm:text-5xl font-bold mb-6 text-yellow-300 drop-shadow-lg text-center whitespace-nowrap">英語詞彙神射手</h1>
-        <p class="text-xl mb-8 text-center px-4">請選擇你要挑戰的主題：</p>
-        <div class="flex flex-col gap-4 w-64">
-            <button class="topic-btn px-6 py-4 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-2xl text-3xl shadow-lg transition transform hover:scale-105 flex flex-col items-center justify-center leading-tight" data-topic="mood">
-                <span class="text-4xl mb-1">😄</span>
-                <span>Mood</span>
-                <span class="text-base font-medium mt-1 opacity-90">形容心情</span>
-            </button>
-            <button class="topic-btn px-6 py-4 bg-green-500 hover:bg-green-600 text-white font-bold rounded-2xl text-3xl shadow-lg transition transform hover:scale-105 flex flex-col items-center justify-center leading-tight" data-topic="environment">
-                <span class="text-4xl mb-1">🌳</span>
-                <span>Environment</span>
-                <span class="text-base font-medium mt-1 opacity-90">形容環境</span>
-            </button>
+    <!-- ================= 主頁面 (Home View) ================= -->
+    <div id="homeView" class="w-full flex flex-col items-center py-8 transition-all duration-500">
+        <div class="text-center mb-10 px-4">
+            <h1 class="text-4xl md:text-5xl font-bold text-indigo-900 mb-4">
+                <i class="fa-solid fa-shapes text-yellow-500 mr-2"></i> 發音詞組溫習 (英音)
+            </h1>
+            <p class="text-lg text-slate-600 font-medium">請選擇一個詞組開始學習！</p>
         </div>
+        
+        <div id="lessonGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-5xl px-6 pb-24"></div>
     </div>
 
-    <!-- 難度選擇畫面 -->
-    <div id="difficultyScreen" class="overlay hidden">
-        <h2 id="diffTitle" class="text-4xl sm:text-5xl font-bold mb-6 text-blue-300 drop-shadow-lg text-center">選擇難度</h2>
-        <div class="flex flex-col gap-4 w-64">
-            <button class="diff-btn px-6 py-4 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-2xl text-3xl shadow-lg transition transform hover:scale-105 flex flex-col items-center justify-center leading-tight" data-diff="easy">
-                <span class="text-4xl mb-1">🌟</span>
-                <span>Easy</span>
-                <span class="text-base font-medium mt-1 opacity-90">簡單</span>
+    <!-- ================= 閃卡頁面 (Flashcard View) ================= -->
+    <div id="flashcardView" class="hidden w-full h-full flex flex-col items-center justify-center py-4 md:py-8 transition-all duration-500 opacity-0 no-select">
+        
+        <div class="w-full max-w-3xl flex items-center justify-between mb-6 md:mb-10 gap-4 px-6">
+            <button onclick="goHome()" class="bg-white text-indigo-600 border-2 border-indigo-100 font-bold py-3 px-6 rounded-2xl text-lg shadow-sm active:scale-95 flex items-center gap-2">
+                <i class="fa-solid fa-house"></i> 返回
             </button>
-            <button class="diff-btn px-6 py-4 bg-red-500 hover:bg-red-600 text-white font-bold rounded-2xl text-3xl shadow-lg transition transform hover:scale-105 flex flex-col items-center justify-center leading-tight" data-diff="hard">
-                <span class="text-4xl mb-1">🔥</span>
-                <span>Hard</span>
-                <span class="text-base font-medium mt-1 opacity-90">困難</span>
-            </button>
-            <button id="backToTopicBtn" class="mt-4 px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-full text-lg shadow-lg transition">
-                返回上一頁
-            </button>
+            <h2 id="currentLessonTitle" class="text-xl md:text-3xl font-bold text-indigo-900 bg-white/50 px-4 py-2 rounded-xl backdrop-blur-sm">詞組</h2>
         </div>
-    </div>
 
-    <!-- 玩法說明畫面 -->
-    <div id="instructionScreen" class="overlay hidden">
-        <div class="bg-gray-800 border-4 border-yellow-400 p-8 rounded-3xl max-w-sm w-full mx-4 text-center pop-in shadow-2xl">
-            <h2 class="text-3xl font-bold mb-4 text-yellow-400">遊戲玩法</h2>
-            <div class="space-y-4 text-lg mb-8 leading-relaxed">
-                <p>🔍 分辨泡泡內的詞語屬於：</p>
-                <div class="flex justify-center gap-4 font-bold">
-                    <span class="text-yellow-400">【正面 😄】</span>
-                    <span>或</span>
-                    <span class="text-blue-400">【負面 😢】</span>
-                </div>
-                <p>🎯 點擊下方按鈕切換武器</p>
-                <p>🏹 選擇<span class="text-yellow-300 underline">正確的武器</span>進行射擊！</p>
-                <p class="text-sm text-gray-400">💡 箭頭遇到牆壁會反彈喔！</p>
+        <div id="touchArea" class="bg-[#3e1b6b] p-6 md:p-12 rounded-[2.5rem] shadow-2xl relative w-[92%] max-w-3xl flex justify-center gap-2 md:gap-8 border-b-[12px] border-[#2a104f] touch-none">
+            <div class="absolute inset-0 overflow-hidden rounded-[2.5rem] opacity-20 pointer-events-none">
+                <i class="fa-solid fa-star absolute top-6 left-10 text-4xl text-white"></i>
+                <i class="fa-solid fa-rocket absolute bottom-10 right-10 text-5xl text-white"></i>
             </div>
-            <button id="startGameBtn" class="w-full py-4 bg-green-500 hover:bg-green-600 text-white font-bold rounded-2xl text-2xl shadow-lg transition transform hover:scale-105">
-                開始遊戲！
-            </button>
-        </div>
-    </div>
 
-    <!-- 拖曳分類挑戰畫面 -->
-    <div id="dragDropScreen" class="overlay hidden bg-gray-900 z-20">
-        <h2 class="text-3xl font-bold text-white mt-4 mb-2">最後挑戰：詞彙分類</h2>
-        <p class="text-sm text-gray-300 mb-6 text-center px-4">正確分類後會播放 <span class="text-yellow-400 font-bold">英文</span> 及 <span class="text-blue-400 font-bold">粵語</span> 讀音！</p>
-        <div class="flex w-full px-4 gap-4 h-56">
-            <div id="dropPositive" class="flex-1 border-4 border-dashed border-yellow-400 rounded-xl flex flex-row flex-wrap items-start justify-center content-start bg-yellow-900 bg-opacity-30 p-2 relative overflow-hidden transition-colors">
-                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none opacity-30">
-                    <div class="text-6xl">😄</div>
-                    <div class="text-xl font-bold text-yellow-300 mt-2">正面</div>
+            <!-- 左側卡牌 -->
+            <div class="relative w-32 sm:w-48 md:w-56 h-52 sm:h-72 md:h-[22rem] perspective-container z-10">
+                <div class="absolute inset-0 bg-[#5271ff] rounded-2xl flex flex-col items-center justify-center shadow-md border-b-[6px] border-[#3752ca]">
+                    <span id="onsetBottom" class="text-white text-[4rem] sm:text-[6rem] md:text-[8rem] font-bold pb-6"></span>
+                </div>
+                <div id="onsetTop" class="card-face absolute inset-0 bg-[#5271ff] rounded-2xl flex flex-col items-center justify-center shadow-lg border-b-[6px] border-[#3752ca] z-20">
+                    <span id="onsetText" class="text-white text-[4rem] sm:text-[6rem] md:text-[8rem] font-bold pb-6"></span>
+                </div>
+                <div class="absolute top-4 left-4 md:left-10 z-30">
+                    <div class="binder-ring w-3 md:w-4 h-12 md:h-16 border-[4px] md:border-[5px] border-[#ffde00] rounded-full absolute -top-10 -left-2"></div>
+                </div>
+                <div class="absolute top-4 right-4 md:right-10 z-30">
+                    <div class="binder-ring w-3 md:w-4 h-12 md:h-16 border-[4px] md:border-[5px] border-[#ffde00] rounded-full absolute -top-10 -left-2"></div>
                 </div>
             </div>
-            <div id="dropNegative" class="flex-1 border-4 border-dashed border-blue-400 rounded-xl flex flex-row flex-wrap items-start justify-center content-start bg-blue-900 bg-opacity-30 p-2 relative overflow-hidden transition-colors">
-                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none opacity-30">
-                    <div class="text-6xl">😢</div>
-                    <div class="text-xl font-bold text-blue-300 mt-2">負面</div>
+
+            <!-- 右側卡牌 -->
+            <div class="relative w-36 sm:w-56 md:w-64 h-52 sm:h-72 md:h-[22rem] z-10">
+                <div class="absolute inset-0 bg-[#ff5277] rounded-2xl flex flex-col items-center justify-center shadow-md border-b-[6px] border-[#d43758]">
+                    <span id="rimeText" class="text-white text-[3rem] sm:text-[5rem] md:text-[6rem] font-bold pb-6 tracking-tight text-center px-2"></span>
                 </div>
+                <div class="absolute top-4 left-6 md:left-12 z-30">
+                    <div class="binder-ring w-3 md:w-4 h-12 md:h-16 border-[4px] md:border-[5px] border-[#ffde00] rounded-full absolute -top-10 -left-2"></div>
+                </div>
+                <div class="absolute top-4 right-6 md:right-12 z-30">
+                    <div class="binder-ring w-3 md:w-4 h-12 md:h-16 border-[4px] md:border-[5px] border-[#ffde00] rounded-full absolute -top-10 -left-2"></div>
+                </div>
+
+                <button onclick="speakCurrentWord()" class="absolute -right-4 md:-right-8 top-1/2 -translate-y-1/2 w-16 h-16 md:w-20 md:h-20 bg-yellow-400 rounded-full shadow-lg border-4 border-white flex items-center justify-center text-white text-3xl md:text-4xl z-40 active:scale-90 transition-transform">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
             </div>
         </div>
-        <div id="cardsArea" class="flex-1 w-full relative mt-6"></div>
+
+        <div class="flex gap-6 md:gap-12 mt-10">
+            <button onclick="prevCard()" class="bg-white text-indigo-600 border-2 border-indigo-100 font-bold py-5 px-8 rounded-3xl text-2xl transition-all shadow-sm active:scale-90 flex items-center gap-3">
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <button onclick="nextCard()" class="bg-indigo-500 text-white font-bold py-5 px-16 rounded-3xl text-2xl transition-all shadow-md active:scale-90 border-b-4 border-indigo-700 active:border-b-0">
+                下一張 <i class="fa-solid fa-chevron-right ml-2"></i>
+            </button>
+        </div>
     </div>
 
-    <!-- 遊戲結束畫面 -->
-    <div id="gameOverScreen" class="overlay hidden">
-        <h2 id="gameOverTitle" class="text-6xl font-bold mb-4 text-red-500">遊戲結束</h2>
-        <p class="text-2xl mb-6">你的總分: <span id="finalScore" class="font-bold text-yellow-400">0</span></p>
-        <button id="restartBtn" class="px-8 py-3 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-full text-xl shadow-lg transition">
-            返回選單
-        </button>
-    </div>
-    
-    <!-- 遊戲全破畫面 -->
-    <div id="gameWonScreen" class="overlay hidden">
-        <h2 class="text-6xl font-bold mb-4 text-yellow-400">恭喜過關！</h2>
-        <p class="text-2xl mb-2 text-center">你已經成功分類所有詞彙！</p>
-        <p class="text-2xl mb-6">最終得分: <span id="winScore" class="font-bold text-green-400">0</span></p>
-        <button id="playAgainBtn" class="px-8 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-full text-xl shadow-lg transition">
-            返回選單
-        </button>
-    </div>
-</div>
+    <script>
+        const lessons = [
+            { title: "詞組 1", preview: "fat, bat, cat", words: [{o: "f", r: "at"}, {o: "b", r: "at"}, {o: "c", r: "at"}] },
+            { title: "詞組 2", preview: "cap, jab, wrap, trap", words: [{o: "c", r: "ap"}, {o: "j", r: "ab"}, {o: "wr", r: "ap"}, {o: "tr", r: "ap"}] },
+            { title: "詞組 3", preview: "ham, ram, slam, jam, camp", words: [{o: "h", r: "am"}, {o: "r", r: "am"}, {o: "sl", r: "am"}, {o: "j", r: "am"}, {o: "c", r: "amp"}] },
+            { title: "詞組 4", preview: "can, ran, sand, land, tan, hand", words: [{o: "c", r: "an"}, {o: "r", r: "an"}, {o: "s", r: "and"}, {o: "l", r: "and"}, {o: "t", r: "an"}, {o: "h", r: "and"}] },
+            { title: "詞組 5", preview: "same, came, name", words: [{o: "s", r: "ame"}, {o: "c", r: "ame"}, {o: "n", r: "ame"}] },
+            { title: "詞組 6", preview: "lay, clay, bay, say, they", words: [{o: "l", r: "ay"}, {o: "cl", r: "ay"}, {o: "b", r: "ay"}, {o: "s", r: "ay"}, {o: "th", r: "ey"}] },
+            { title: "詞組 7", preview: "rain, brain, train", words: [{o: "r", r: "ain"}, {o: "br", r: "ain"}, {o: "tr", r: "ain"}] },
+            { title: "詞組 8", preview: "beige, sleigh", words: [{o: "b", r: "eige"}, {o: "sl", r: "eigh"}] },
+            { title: "詞組 9", preview: "eight, weight", words: [{o: "", r: "eight"}, {o: "w", r: "eight"}] },
+            { title: "詞組 10", preview: "red, ted", words: [{o: "r", r: "ed"}, {o: "t", r: "ed"}] },
+            { title: "詞組 11", preview: "met, bet, let", words: [{o: "m", r: "et"}, {o: "b", r: "et"}, {o: "l", r: "et"}] },
+            { title: "詞組 12", preview: "quest, rest, nest, vest", words: [{o: "qu", r: "est"}, {o: "r", r: "est"}, {o: "n", r: "est"}, {o: "v", r: "est"}] },
+            { title: "詞組 13", preview: "head, bread, spread, dead", words: [{o: "h", r: "ead"}, {o: "br", r: "ead"}, {o: "spr", r: "ead"}, {o: "d", r: "ead"}] },
+            { title: "詞組 14", preview: "them, gem, pen", words: [{o: "th", r: "em"}, {o: "g", r: "em"}, {o: "p", r: "en"}] },
+            { title: "詞組 15", preview: "achieve, believe, receive", words: [{o: "ach", r: "ieve"}, {o: "bel", r: "ieve"}, {o: "rec", r: "eive"}] },
+            { title: "詞組 16", preview: "sweet, sheet, keep, need", words: [{o: "sw", r: "eet"}, {o: "sh", r: "eet"}, {o: "k", r: "eep"}, {o: "n", r: "eed"}] },
+            { title: "詞組 17", preview: "team, clean, dream", words: [{o: "t", r: "eam"}, {o: "cl", r: "ean"}, {o: "dr", r: "eam"}] },
+            { title: "詞組 18", preview: "kid, rid, sid, bid", words: [{o: "k", r: "id"}, {o: "r", r: "id"}, {o: "s", r: "id"}, {o: "b", r: "id"}] },
+            { title: "詞組 19", preview: "kit, sit, fit", words: [{o: "k", r: "it"}, {o: "s", r: "it"}, {o: "f", r: "it"}] },
+            { title: "詞組 20", preview: "tim, slim", words: [{o: "t", r: "im"}, {o: "sl", r: "im"}] },
+            { title: "詞組 21", preview: "ill, bill, fill, skill", words: [{o: "", r: "ill"}, {o: "b", r: "ill"}, {o: "f", r: "ill"}, {o: "sk", r: "ill"}] },
+            { title: "詞組 22", preview: "side, wide, hide", words: [{o: "s", r: "ide"}, {o: "w", r: "ide"}, {o: "h", r: "ide"}] },
+            { title: "詞組 23", preview: "kind, find, mind", words: [{o: "k", r: "ind"}, {o: "f", r: "ind"}, {o: "m", r: "ind"}] },
+            { title: "詞組 24", preview: "cry, dry", words: [{o: "cr", r: "y"}, {o: "dr", r: "y"}] },
+            { title: "詞組 25", preview: "why, shy", words: [{o: "wh", r: "y"}, {o: "sh", r: "y"}] },
+            { title: "詞組 26", preview: "low, show, slow, glow", words: [{o: "l", r: "ow"}, {o: "sh", r: "ow"}, {o: "sl", r: "ow"}, {o: "gl", r: "ow"}] },
+            { title: "詞組 27", preview: "road, toad", words: [{o: "r", r: "oad"}, {o: "t", r: "oad"}] },
+            { title: "詞組 28", preview: "boat, coat", words: [{o: "b", r: "oat"}, {o: "c", r: "oat"}] },
+            { title: "詞組 29", preview: "box, fox", words: [{o: "b", r: "ox"}, {o: "f", r: "ox"}] },
+            { title: "詞組 30", preview: "top, chop, stop, cop, rob", words: [{o: "t", r: "op"}, {o: "ch", r: "op"}, {o: "st", r: "op"}, {o: "c", r: "op"}, {o: "r", r: "ob"}] },
+            { title: "詞組 31", preview: "dot, shot, got, pot", words: [{o: "d", r: "ot"}, {o: "sh", r: "ot"}, {o: "g", r: "ot"}, {o: "p", r: "ot"}] },
+            { title: "詞組 32", preview: "rod, trod, plod", words: [{o: "r", r: "od"}, {o: "tr", r: "od"}, {o: "pl", r: "od"}] },
+            { title: "詞組 33", preview: "lock, clock, rock", words: [{o: "l", r: "ock"}, {o: "cl", r: "ock"}, {o: "r", r: "ock"}] },
+            { title: "詞組 34", preview: "on, ron", words: [{o: "", r: "on"}, {o: "r", r: "on"}] },
+            { title: "詞組 35", preview: "all, ball, wall", words: [{o: "", r: "all"}, {o: "b", r: "all"}, {o: "w", r: "all"}] },
+            { title: "詞組 36", preview: "water, wash, watch", words: [{o: "w", r: "ater"}, {o: "w", r: "ash"}, {o: "w", r: "atch"}] },
+            { title: "詞組 37", preview: "look, cook, book", words: [{o: "l", r: "ook"}, {o: "c", r: "ook"}, {o: "b", r: "ook"}] },
+            { title: "詞組 38", preview: "food, mood, good", words: [{o: "f", r: "ood"}, {o: "m", r: "ood"}, {o: "g", r: "ood"}] },
+            { title: "詞組 39", preview: "cub, rub, stub", words: [{o: "c", r: "ub"}, {o: "r", r: "ub"}, {o: "st", r: "ub"}] },
+            { title: "詞組 40", preview: "up, cup, tub, club", words: [{o: "", r: "up"}, {o: "c", r: "up"}, {o: "t", r: "ub"}, {o: "cl", r: "ub"}] },
+            { title: "詞組 41", preview: "but, cut, shut, nut, rut, jut", words: [{o: "b", r: "ut"}, {o: "c", r: "ut"}, {o: "sh", r: "ut"}, {o: "n", r: "ut"}, {o: "r", r: "ut"}, {o: "j", r: "ut"}] },
+            { title: "詞組 42", preview: "honey, money", words: [{o: "h", r: "oney"}, {o: "m", r: "oney"}] },
+            { title: "詞組 43", preview: "sun, fun, gun", words: [{o: "s", r: "un"}, {o: "f", r: "un"}, {o: "g", r: "un"}] },
+            { title: "詞組 44", preview: "hug, mug, bug, rug", words: [{o: "h", r: "ug"}, {o: "m", r: "ug"}, {o: "b", r: "ug"}, {o: "r", r: "ug"}] }
+        ];
 
-<script>
-    // --- 遊戲資料庫 ---
-    const gameData = {
-        mood: {
-            title: "形容心情 (Mood)",
-            weapons: ['positive', 'negative'],
-            easy: {
-                positive: ["Happy", "Glad", "Great", "Excited", "Proud", "Friendly", "Sweet", "Funny"],
-                negative: ["Sad", "Mad", "Angry", "Scared", "Sick", "Lonely", "Worried", "Boring"]
-            },
-            hard: {
-                positive: ["Happy", "Glad", "Great", "Excited", "Proud", "Friendly", "Sweet", "Funny", "Cheerful", "Popular", "Relaxed", "Confident"],
-                negative: ["Sad", "Mad", "Angry", "Scared", "Sick", "Lonely", "Worried", "Boring", "Afraid", "Nervous", "Stressed", "Jealous", "Disappointed"]
-            }
-        },
-        environment: {
-            title: "形容環境 (Environment)",
-            weapons: ['positive', 'negative'],
-            easy: {
-                positive: ["Clean", "Quiet", "Modern", "Spacious", "Comfortable", "Bright"],
-                negative: ["Dirty", "Noisy", "Crowded", "Messy", "Smelly", "Dark"]
-            },
-            hard: {
-                positive: ["Clean", "Quiet", "Modern", "Spacious", "Comfortable", "Bright", "Fancy", "Relaxing", "Perfect"],
-                negative: ["Dirty", "Noisy", "Crowded", "Messy", "Smelly", "Dark", "Dusty", "Poor", "Sticky"]
-            }
-        }
-    };
+        let currentLessonIndex = 0;
+        let currentWordIndex = 0;
+        let isAnimating = false;
 
-    const dictionary = {
-        "Happy": "開心", "Glad": "高興", "Great": "極好", "Excited": "興奮", "Proud": "自豪", "Friendly": "友善", "Sweet": "甜美", "Funny": "有趣", "Cheerful": "開朗", "Popular": "受歡迎", "Relaxed": "放鬆", "Confident": "自信",
-        "Sad": "傷心", "Mad": "發火", "Angry": "生氣", "Scared": "害怕", "Sick": "生病", "Lonely": "孤獨", "Worried": "擔心", "Boring": "沉悶", "Afraid": "害怕", "Nervous": "緊張", "Stressed": "壓力大", "Jealous": "嫉妒", "Disappointed": "失望",
-        "Clean": "乾淨", "Safe": "安全", "Quiet": "安靜", "Bright": "明亮", "Beautiful": "美麗", "Comfortable": "舒服", "Modern": "現代化", "Spacious": "寬敞", "Fancy": "豪華", "Relaxing": "輕鬆", "Perfect": "完美",
-        "Dirty": "骯髒", "Noisy": "嘈吵", "Dark": "黑暗", "Messy": "凌亂", "Dangerous": "危險", "Crowded": "擁擠", "Smelly": "臭", "Dusty": "多塵", "Poor": "惡劣", "Sticky": "黏膩",
-        "Big": "大", "Small": "小", "Old": "舊", "New": "新", "Wide": "寬闊", "Narrow": "狹窄"
-    };
+        const homeView = document.getElementById('homeView');
+        const flashcardView = document.getElementById('flashcardView');
+        const lessonGrid = document.getElementById('lessonGrid');
+        const currentLessonTitle = document.getElementById('currentLessonTitle');
+        const onsetTop = document.getElementById('onsetTop');
+        const onsetText = document.getElementById('onsetText');
+        const onsetBottom = document.getElementById('onsetBottom');
+        const rimeText = document.getElementById('rimeText');
+        const touchArea = document.getElementById('touchArea');
 
-    const levelLayouts = [
-        [
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 2, 2, 1, 1, 1, 1, 2, 2, 1],
-            [1, 2, 2, 2, 0, 0, 2, 2, 2, 1],
-            [0, 1, 2, 2, 0, 0, 2, 2, 1, 0],
-            [0, 0, 1, 1, 0, 0, 1, 1, 0, 0],
-            [0, 0, 2, 2, 2, 2, 2, 2, 0, 0],
-            [0, 0, 0, 2, 2, 2, 2, 0, 0, 0],
-            [0, 0, 0, 0, 2, 2, 0, 0, 0, 0]
-        ],
-        [
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [2, 2, 1, 1, 1, 1, 1, 1, 2, 2],
-            [2, 2, 2, 0, 1, 1, 0, 2, 2, 2],
-            [0, 2, 2, 0, 1, 1, 0, 2, 2, 0],
-            [0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
-            [0, 0, 2, 2, 0, 0, 2, 2, 0, 0],
-            [0, 0, 2, 2, 2, 2, 2, 2, 0, 0],
-            [0, 0, 0, 2, 2, 2, 2, 0, 0, 0]
-        ]
-    ];
+        let voices = [];
+        function loadVoices() { voices = window.speechSynthesis.getVoices(); }
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+        loadVoices();
 
-    // --- 核心變數 ---
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const CANVAS_W = 600;
-    const CANVAS_H = 800;
-    const BUBBLE_RADIUS = 28;
-    const ROW_HEIGHT = BUBBLE_RADIUS * Math.sqrt(3);
-    const DROP_INTERVAL = 30;
-    const DROP_DISTANCE = ROW_HEIGHT * 2;
-
-    let selectedTopic = 'mood';
-    let selectedDifficulty = 'easy';
-    let score = 0;
-    let bubbles = [];
-    let arrows = [];
-    let particles = [];
-    let floatingTexts = [];
-    let gridDropOffset = 0;
-    let dropTimer = DROP_INTERVAL;
-    let lastTime = 0;
-    let gameState = 'start'; 
-    let mouseX = CANVAS_W / 2;
-    let mouseY = CANVAS_H / 2;
-    let playerAngle = -Math.PI / 2;
-    let canShoot = true;
-    let currentWeapon = 'positive';
-
-    const PLAYER_X = CANVAS_W / 2;
-    const PLAYER_Y = CANVAS_H - 100;
-    const DEATH_LINE = PLAYER_Y - 50;
-
-    // --- 音效處理 ---
-    const shootSound = new Audio();
-    shootSound.src = 'ribhavagrawal-woosh-230554.mp3';
-    
-    const confirmAudio = new Audio();
-    confirmAudio.src = 'u_r2jdgj5bv7-confirmacao-5-497438.mp3';
-
-    function safePlaySound(audioElement) {
-        if (!audioElement || !audioElement.src) return;
-        audioElement.currentTime = 0;
-        audioElement.play().catch(e => {
-            console.log("音效播不出來，可能需要用戶點擊頁面。");
-        });
-    }
-
-    // --- 類別定義 ---
-    class Bubble {
-        constructor(row, col, type) {
-            this.row = row; this.col = col; this.radius = BUBBLE_RADIUS;
-            let xOffset = (row % 2 === 0) ? BUBBLE_RADIUS : 0;
-            this.baseX = BUBBLE_RADIUS + xOffset + col * (BUBBLE_RADIUS * 2);
-            this.baseY = BUBBLE_RADIUS + row * ROW_HEIGHT;
-            this.x = this.baseX; this.y = this.baseY + gridDropOffset;
-            this.color = ['#FFB3BA', '#FFDFBA', '#FFFFBA', '#BAFFC9', '#BAE1FF', '#E1BAFF', '#FFB3E6'][Math.floor(Math.random() * 7)];
-            this.type = type;
-            const wordList = gameData[selectedTopic][selectedDifficulty][this.type];
-            this.word = wordList[Math.floor(Math.random() * wordList.length)];
-            this.active = true; this.shakeTimer = 0; this.falling = false; this.vy = 0;
-        }
-        update(dt) {
-            if (this.falling) {
-                this.vy += 1000 * (dt / 1000);
-                this.y += this.vy * (dt / 1000);
-                if (this.y > CANVAS_H + this.radius) this.active = false;
-                return;
-            }
-            this.y = this.baseY + gridDropOffset;
-            if (this.shakeTimer > 0) {
-                this.shakeTimer--;
-                this.x = this.baseX + (Math.random() * 6 - 3);
-            } else { this.x = this.baseX; }
-        }
-        draw(ctx) {
-            if (!this.active) return;
-            ctx.beginPath(); ctx.arc(this.x, this.y, this.radius - 2, 0, Math.PI * 2);
-            ctx.fillStyle = this.color; ctx.fill();
-            ctx.strokeStyle = 'rgba(0,0,0,0.2)'; ctx.lineWidth = 2; ctx.stroke();
-            ctx.fillStyle = '#111'; ctx.font = 'bold 16px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            if(this.word.length > 5) ctx.font = 'bold 13px Arial';
-            ctx.fillText(this.word, this.x, this.y);
-            if (this.shakeTimer > 0) {
-                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.strokeStyle = 'red'; ctx.lineWidth = 4; ctx.stroke();
-            }
-        }
-    }
-
-    class Arrow {
-        constructor(x, y, angle, type) {
-            this.x = x; this.y = y; this.speed = 800;
-            this.vx = Math.cos(angle) * this.speed; this.vy = Math.sin(angle) * this.speed;
-            this.angle = angle; this.type = type; this.active = true; this.radius = 12;
-        }
-        update(dt) {
-            this.x += this.vx * (dt / 1000); this.y += this.vy * (dt / 1000);
-            if (this.x < 0 || this.x > CANVAS_W) { this.vx *= -1; this.angle = Math.atan2(this.vy, this.vx); this.x = this.x < 0 ? 0 : CANVAS_W; }
-            if (this.y < 0) this.active = false;
-        }
-        draw(ctx) {
-            if (!this.active) return;
-            ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.angle);
-            const color = this.type === 'positive' ? '#facc15' : '#3b82f6';
-            ctx.beginPath(); ctx.moveTo(-15, 0); ctx.lineTo(15, 0); ctx.strokeStyle = color; ctx.lineWidth = 4; ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(15, 0); ctx.lineTo(-2, -10); ctx.lineTo(-2, 10); ctx.fillStyle = color; ctx.fill();
-            if(this.type === 'positive') {
-                ctx.shadowBlur = 10; ctx.shadowColor = 'yellow'; ctx.stroke();
-            }
-            ctx.restore();
-        }
-    }
-
-    class Particle {
-        constructor(x, y, color) {
-            this.x = x; this.y = y; let angle = Math.random() * Math.PI * 2; let speed = Math.random() * 200 + 50;
-            this.vx = Math.cos(angle) * speed; this.vy = Math.sin(angle) * speed;
-            this.life = 1.0; this.color = color; this.size = Math.random() * 6 + 2;
-        }
-        update(dt) { this.x += this.vx * (dt/1000); this.y += this.vy * (dt/1000); this.life -= dt/1000 * 1.5; }
-        draw(ctx) { if(this.life <= 0) return; ctx.globalAlpha = this.life; ctx.fillStyle = this.color; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill(); ctx.globalAlpha = 1.0; }
-    }
-
-    // --- 語音播放系統 (支持英粵雙語) ---
-
-    function speakWordDual(word, chinese) {
-        if (!('speechSynthesis' in window)) return;
-        
-        window.speechSynthesis.cancel();
-        
-        // 1. 英語讀音
-        const engUtt = new SpeechSynthesisUtterance(word);
-        engUtt.lang = 'en-US';
-        engUtt.rate = 0.9;
-        
-        // 2. 粵語讀音 (廣東話)
-        const canUtt = new SpeechSynthesisUtterance(chinese);
-        canUtt.lang = 'zh-HK';
-        canUtt.rate = 1.0;
-
-        // 當英語讀完後，接續讀粵語
-        engUtt.onend = () => {
-            window.speechSynthesis.speak(canUtt);
-        };
-
-        window.speechSynthesis.speak(engUtt);
-    }
-
-    // --- 遊戲邏輯 ---
-
-    function selectWeapon(type, e) {
-        if (e) e.stopPropagation();
-        if (!gameData[selectedTopic].weapons.includes(type)) return;
-        currentWeapon = type;
-        document.getElementById('btnPositive').classList.remove('weapon-selected');
-        document.getElementById('btnNegative').classList.remove('weapon-selected');
-        if(type === 'positive') document.getElementById('btnPositive').classList.add('weapon-selected');
-        if(type === 'negative') document.getElementById('btnNegative').classList.add('weapon-selected');
-    }
-
-    function removeDisconnectedBubbles() {
-        let connected = new Set(); let queue = [];
-        for (let i = 0; i < bubbles.length; i++) {
-            let b = bubbles[i];
-            if (b.active && !b.falling && b.row === 0) { connected.add(i); queue.push(i); }
-        }
-        while (queue.length > 0) {
-            let currIdx = queue.shift(); let currB = bubbles[currIdx];
-            for (let i = 0; i < bubbles.length; i++) {
-                if (i === currIdx || !bubbles[i].active || bubbles[i].falling || connected.has(i)) continue;
-                let dx = currB.x - bubbles[i].x; let dy = currB.y - bubbles[i].y;
-                if (Math.sqrt(dx * dx + dy * dy) < BUBBLE_RADIUS * 2.2) { connected.add(i); queue.push(i); }
-            }
-        }
-        for (let i = 0; i < bubbles.length; i++) {
-            let b = bubbles[i];
-            if (b.active && !b.falling && !connected.has(i)) { b.falling = true; b.vy = 0; score += 5; }
-        }
-    }
-
-    function initLevel() {
-        bubbles = []; arrows = []; particles = []; floatingTexts = [];
-        gridDropOffset = 0; dropTimer = DROP_INTERVAL;
-        const currentTemplate = levelLayouts[Math.floor(Math.random() * levelLayouts.length)];
-        const types = Object.keys(gameData[selectedTopic][selectedDifficulty]);
-        for (let r = 0; r < 8; r++) {
-            let cols = (r % 2 === 0) ? 10 : 9;
-            for (let c = 0; c < cols; c++) {
-                if (currentTemplate[r] && currentTemplate[r][c] > 0) {
-                    bubbles.push(new Bubble(r, c, types[Math.floor(Math.random() * types.length)]));
-                }
-            }
-        }
-        removeDisconnectedBubbles();
-        bubbles = bubbles.filter(b => b.active);
-        gameState = 'playing';
-        document.getElementById('weaponBar').classList.remove('hidden');
-        lastTime = performance.now();
-        requestAnimationFrame(gameLoop);
-    }
-
-    function playConfirmSound(word, type) {
-        safePlaySound(confirmAudio);
-        // 神射手階段僅讀英文，保持節奏
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel();
-            let utt = new SpeechSynthesisUtterance(word);
-            utt.lang = 'en-US';
-            utt.pitch = (type === 'positive') ? 1.2 : 0.8;
-            window.speechSynthesis.speak(utt);
-        }
-    }
-
-    function checkCollisions() {
-        for (let i = arrows.length - 1; i >= 0; i--) {
-            let arrow = arrows[i];
-            for (let j = 0; j < bubbles.length; j++) {
-                let b = bubbles[j];
-                if (!b.active || b.falling) continue;
-                let dx = arrow.x - b.x; let dy = arrow.y - b.y;
-                if (Math.sqrt(dx * dx + dy * dy) < b.radius + arrow.radius) {
-                    if (b.type === arrow.type) {
-                        b.active = false; score += 10;
-                        for(let k=0; k<10; k++) particles.push(new Particle(b.x, b.y, b.color));
-                        playConfirmSound(b.word, b.type);
-                        removeDisconnectedBubbles();
-                    } else { b.shakeTimer = 20; }
-                    arrows.splice(i, 1);
-                    break;
-                }
-            }
-        }
-    }
-
-    function update(dt) {
-        if (gameState !== 'playing') return;
-        playerAngle = Math.atan2(mouseY - PLAYER_Y, mouseX - PLAYER_X);
-        if (playerAngle > -0.1 && playerAngle < Math.PI / 2) playerAngle = -0.1;
-        if (playerAngle < Math.PI && playerAngle >= Math.PI / 2) playerAngle = Math.PI + 0.1;
-
-        arrows.forEach(a => a.update(dt));
-        arrows = arrows.filter(a => a.active);
-        particles.forEach(p => p.update(dt));
-        particles = particles.filter(p => p.life > 0);
-        
-        dropTimer -= dt / 1000;
-        if (dropTimer <= 0) { gridDropOffset += DROP_DISTANCE; dropTimer = DROP_INTERVAL; }
-        bubbles.forEach(b => b.update(dt));
-
-        checkCollisions();
-        
-        if (bubbles.filter(b => b.active && !b.falling).length === 0) {
-            gameState = 'dragdrop';
-            document.getElementById('weaponBar').classList.add('hidden');
-            initDragDropTask();
-        }
-        for (let b of bubbles) {
-            if (b.active && !b.falling && b.y + b.radius > DEATH_LINE) {
-                gameState = 'over';
-                document.getElementById('weaponBar').classList.add('hidden');
-                document.getElementById('finalScore').innerText = score;
-                document.getElementById('gameOverScreen').classList.remove('hidden');
-            }
-        }
-    }
-
-    function drawPredictLine() {
-        ctx.save();
-        ctx.lineWidth = 2;
-        ctx.setLineDash([5, 8]);
-        const color = currentWeapon === 'positive' ? 'rgba(250, 204, 21, 0.4)' : 'rgba(59, 130, 246, 0.4)';
-        ctx.strokeStyle = color;
-
-        let startX = PLAYER_X;
-        let startY = PLAYER_Y;
-        let vx = Math.cos(playerAngle);
-        let vy = Math.sin(playerAngle);
-
-        let tWall = -1;
-        if (vx > 0) tWall = (CANVAS_W - startX) / vx;
-        else if (vx < 0) tWall = (0 - startX) / vx;
-
-        let tTop = (0 - startY) / vy;
-        let t1 = Math.min(tWall > 0 ? tWall : Infinity, tTop > 0 ? tTop : Infinity, 1500);
-
-        let endX = startX + vx * t1;
-        let endY = startY + vy * t1;
-
-        ctx.beginPath();
-        ctx.moveTo(startX, startY);
-        ctx.lineTo(endX, endY);
-        ctx.stroke();
-
-        if (tWall > 0 && tWall < tTop && tWall < 1500) {
-            let nextVx = -vx;
-            let nextVy = vy;
-            let t2 = 400;
-            ctx.beginPath();
-            ctx.moveTo(endX, endY);
-            ctx.lineTo(endX + nextVx * t2, endY + nextVy * t2);
-            ctx.stroke();
-        }
-        ctx.restore();
-    }
-
-    function draw() {
-        ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
-        if (gameState === 'start') return;
-        if (gameState === 'playing') drawPredictLine();
-        bubbles.forEach(b => b.draw(ctx));
-        arrows.forEach(a => a.draw(ctx));
-        particles.forEach(p => p.draw(ctx));
-        
-        ctx.save(); ctx.translate(PLAYER_X, PLAYER_Y);
-        ctx.fillStyle = '#4ade80'; ctx.beginPath(); ctx.arc(0, 10, 20, 0, Math.PI * 2); ctx.fill();
-        ctx.rotate(playerAngle); 
-        ctx.beginPath(); ctx.arc(0, 0, 30, -Math.PI/3, Math.PI/3); 
-        ctx.strokeStyle = '#854d0e'; ctx.lineWidth = 4; ctx.stroke();
-        ctx.restore();
-
-        if (gameState === 'playing') {
-            ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(0, 0, CANVAS_W, 50);
-            ctx.fillStyle = 'white'; ctx.font = 'bold 20px Arial'; ctx.textAlign = 'left'; ctx.fillText(`分數: ${score}`, 15, 25);
-            ctx.textAlign = 'right'; ctx.fillText(`下壓: ${Math.ceil(dropTimer)}s`, CANVAS_W - 15, 25);
-        }
-    }
-
-    function gameLoop(timestamp) {
-        let dt = timestamp - lastTime; lastTime = timestamp; if (dt > 100) dt = 16;
-        update(dt); draw();
-        if (gameState === 'playing') requestAnimationFrame(gameLoop);
-    }
-
-    // --- UI 控制 ---
-    document.querySelectorAll('.topic-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            selectedTopic = e.currentTarget.getAttribute('data-topic');
-            document.getElementById('topicScreen').classList.add('hidden');
-            document.getElementById('diffTitle').innerText = gameData[selectedTopic].title;
-            document.getElementById('difficultyScreen').classList.remove('hidden');
-        });
-    });
-
-    document.querySelectorAll('.diff-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            selectedDifficulty = e.currentTarget.getAttribute('data-diff');
-            document.getElementById('difficultyScreen').classList.add('hidden');
-            document.getElementById('instructionScreen').classList.remove('hidden');
-        });
-    });
-
-    document.getElementById('startGameBtn').addEventListener('click', () => {
-        document.getElementById('instructionScreen').classList.add('hidden');
-        score = 0;
-        initLevel();
-    });
-
-    document.getElementById('backToTopicBtn').addEventListener('click', () => {
-        document.getElementById('difficultyScreen').classList.add('hidden');
-        document.getElementById('topicScreen').classList.remove('hidden');
-    });
-
-    document.getElementById('restartBtn').addEventListener('click', () => {
-        location.reload();
-    });
-
-    document.getElementById('playAgainBtn').addEventListener('click', () => {
-        location.reload();
-    });
-
-    canvas.addEventListener('mousemove', (e) => {
-        const rect = canvas.getBoundingClientRect();
-        mouseX = (e.clientX - rect.left) * (CANVAS_W / rect.width);
-        mouseY = (e.clientY - rect.top) * (CANVAS_H / rect.height);
-    });
-
-    canvas.addEventListener('mousedown', () => {
-        if (gameState !== 'playing' || !canShoot) return;
-        safePlaySound(shootSound);
-        arrows.push(new Arrow(PLAYER_X, PLAYER_Y, playerAngle, currentWeapon));
-        canShoot = false; setTimeout(() => canShoot = true, 300);
-    });
-
-    // --- 新增：手機觸控支援 (拖曳瞄準，放開射擊) ---
-    let isTouching = false;
-
-    canvas.addEventListener('touchstart', (e) => {
-        if (gameState !== 'playing') return;
-        e.preventDefault(); // 防止畫面滾動
-        isTouching = true;
-        const rect = canvas.getBoundingClientRect();
-        mouseX = (e.touches[0].clientX - rect.left) * (CANVAS_W / rect.width);
-        mouseY = (e.touches[0].clientY - rect.top) * (CANVAS_H / rect.height);
-    }, {passive: false});
-
-    canvas.addEventListener('touchmove', (e) => {
-        if (gameState !== 'playing' || !isTouching) return;
-        e.preventDefault(); // 防止畫面滾動
-        const rect = canvas.getBoundingClientRect();
-        mouseX = (e.touches[0].clientX - rect.left) * (CANVAS_W / rect.width);
-        mouseY = (e.touches[0].clientY - rect.top) * (CANVAS_H / rect.height);
-    }, {passive: false});
-
-    canvas.addEventListener('touchend', (e) => {
-        if (gameState !== 'playing' || !isTouching) return;
-        e.preventDefault();
-        isTouching = false;
-        if (!canShoot) return;
-        safePlaySound(shootSound);
-        arrows.push(new Arrow(PLAYER_X, PLAYER_Y, playerAngle, currentWeapon));
-        canShoot = false; setTimeout(() => canShoot = true, 300);
-    }, {passive: false});
-
-    // --- 拖曳任務 ---
-    let cardsMatched = 0;
-    function initDragDropTask() {
-        document.getElementById('dragDropScreen').classList.remove('hidden');
-        cardsMatched = 0;
-        let posW = [...gameData[selectedTopic][selectedDifficulty].positive].slice(0, 4);
-        let negW = [...gameData[selectedTopic][selectedDifficulty].negative].slice(0, 4);
-        let deck = [];
-        posW.forEach(w => deck.push({word: w, type: 'positive'}));
-        negW.forEach(w => deck.push({word: w, type: 'negative'}));
-        deck.sort(() => Math.random() - 0.5);
-        
-        const area = document.getElementById('cardsArea');
-        area.innerHTML = '';
-        deck.forEach((item, i) => {
-            let card = document.createElement('div');
-            card.className = 'flip-card';
-            card.style.left = `${(i % 2) * 150 + 100}px`; card.style.top = `${Math.floor(i/2) * 80 + 20}px`;
-            card.dataset.word = item.word; card.dataset.type = item.type;
-            card.innerHTML = `<div class="flip-card-inner w-full h-full pointer-events-none transition-transform duration-500" style="transform-style: preserve-3d;">
-                <div class="absolute w-full h-full bg-white border-2 border-gray-400 rounded-lg flex items-center justify-center text-black font-bold" style="backface-visibility: hidden;">${item.word}</div>
-                <div class="absolute w-full h-full bg-yellow-300 border-2 border-yellow-500 rounded-lg flex items-center justify-center text-orange-800 font-bold" style="backface-visibility: hidden; transform: rotateY(180deg);">${dictionary[item.word] || item.word}</div>
-            </div>`;
-            card.addEventListener('pointerdown', startDrag);
-            area.appendChild(card);
-        });
-    }
-
-    let dragItem = null; let offset = {x:0, y:0};
-    function startDrag(e) {
-        dragItem = e.currentTarget; dragItem.setPointerCapture(e.pointerId);
-        dragItem.style.zIndex = "100";
-        offset = { x: e.clientX, y: e.clientY };
-        dragItem.addEventListener('pointermove', moveDrag);
-        dragItem.addEventListener('pointerup', endDrag);
-    }
-    function moveDrag(e) {
-        if(!dragItem) return;
-        dragItem.style.transform = `translate(${e.clientX - offset.x}px, ${e.clientY - offset.y}px)`;
-    }
-    function endDrag(e) {
-        if(!dragItem) return;
-        let rect = dragItem.getBoundingClientRect();
-        let cx = rect.left + rect.width/2; let cy = rect.top + rect.height/2;
-        let pR = document.getElementById('dropPositive').getBoundingClientRect();
-        let nR = document.getElementById('dropNegative').getBoundingClientRect();
-        let target = null;
-        if(cx > pR.left && cx < pR.right && cy > pR.top && cy < pR.bottom) target = 'positive';
-        else if(cx > nR.left && cx < nR.right && cy > nR.top && cy < nR.bottom) target = 'negative';
-        
-        if(target === dragItem.dataset.type) {
-            const word = dragItem.dataset.word;
-            const chinese = dictionary[word] || word;
-
-            // 成功分類時，播放雙語讀音
-            speakWordDual(word, chinese);
+        function speakCurrentWord() {
+            const wordObj = lessons[currentLessonIndex].words[currentWordIndex];
+            const originalText = wordObj.o + wordObj.r;
             
-            dragItem.querySelector('.flip-card-inner').style.transform = 'rotateY(180deg)';
-            dragItem.style.position = 'static'; dragItem.style.transform = 'scale(0.8)';
-            (target === 'positive' ? document.getElementById('dropPositive') : document.getElementById('dropNegative')).appendChild(dragItem);
-            cardsMatched++;
-            if(cardsMatched >= 8) {
-                setTimeout(() => {
-                    document.getElementById('dragDropScreen').classList.add('hidden');
-                    document.getElementById('winScore').innerText = score;
-                    document.getElementById('gameWonScreen').classList.remove('hidden');
-                }, 1500);
+            let textToSpeak = originalText;
+            if (originalText.toLowerCase().startsWith('h')) {
+                textToSpeak = " " + originalText; 
             }
-        } else { dragItem.style.transform = 'translate(0,0)'; }
-        dragItem = null;
-    }
-</script>
+
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(textToSpeak);
+            utterance.lang = 'en-GB';
+            
+            const britishVoice = voices.find(v => v.lang === 'en-GB' && v.name.includes('Daniel'))
+                                || voices.find(v => v.lang === 'en-GB' && v.name.includes('Serena'))
+                                || voices.find(v => v.lang === 'en-GB' && v.name.includes('Google'))
+                                || voices.find(v => v.lang === 'en-GB')
+                                || voices.find(v => v.lang.startsWith('en'));
+            
+            if (britishVoice) utterance.voice = britishVoice;
+            
+            utterance.rate = 0.8;  
+            utterance.pitch = 0.9; 
+            window.speechSynthesis.speak(utterance);
+        }
+
+        let touchStartX = 0;
+        touchArea.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, {passive: true});
+        touchArea.addEventListener('touchend', e => {
+            let touchEndX = e.changedTouches[0].screenX;
+            if (touchStartX - touchEndX > 50) nextCard();
+            if (touchEndX - touchStartX > 50) prevCard();
+        }, {passive: true});
+
+        function initHome() {
+            lessonGrid.innerHTML = '';
+            lessons.forEach((lesson, index) => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-6 rounded-3xl shadow-sm border-2 border-slate-100 active:bg-indigo-50 cursor-pointer transition-all text-center";
+                card.onclick = () => openLesson(index);
+                card.innerHTML = `
+                    <div class="w-16 h-16 mx-auto bg-indigo-50 text-indigo-500 rounded-2xl flex items-center justify-center text-2xl font-bold mb-4">
+                        ${index + 1}
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">${lesson.title}</h3>
+                    <p class="text-slate-500 font-medium leading-relaxed">${lesson.preview}</p>
+                `;
+                lessonGrid.appendChild(card);
+            });
+        }
+
+        function openLesson(index) {
+            currentLessonIndex = index;
+            currentWordIndex = 0;
+            currentLessonTitle.textContent = lessons[index].title;
+            homeView.classList.add('hidden', 'opacity-0');
+            flashcardView.classList.remove('hidden');
+            setTimeout(() => flashcardView.classList.remove('opacity-0'), 50);
+            updateDisplayInstant();
+        }
+
+        function goHome() {
+            flashcardView.classList.add('opacity-0');
+            window.speechSynthesis.cancel();
+            setTimeout(() => {
+                flashcardView.classList.add('hidden');
+                homeView.classList.remove('hidden');
+                setTimeout(() => homeView.classList.remove('opacity-0'), 50);
+            }, 500);
+        }
+
+        function updateDisplayInstant() {
+            const word = lessons[currentLessonIndex].words[currentWordIndex];
+            rimeText.textContent = word.r;
+            onsetText.textContent = word.o;
+            onsetBottom.textContent = word.o;
+            onsetTop.style.transition = 'none';
+            onsetTop.style.transform = 'rotateX(0deg)';
+            onsetTop.style.opacity = '1';
+        }
+
+        function nextCard() {
+            if (isAnimating) return;
+            isAnimating = true;
+            const words = lessons[currentLessonIndex].words;
+            const nextIndex = (currentWordIndex + 1) % words.length;
+            const nextWord = words[nextIndex];
+            onsetBottom.textContent = nextWord.o;
+            onsetTop.style.transition = "transform 0.4s ease-in, opacity 0.2s 0.2s";
+            onsetTop.style.transform = "rotateX(110deg)";
+            onsetTop.style.opacity = "0";
+            setTimeout(() => { rimeText.textContent = nextWord.r; }, 150);
+            setTimeout(() => {
+                currentWordIndex = nextIndex;
+                onsetTop.style.transition = "none";
+                onsetTop.style.transform = "rotateX(0deg)";
+                onsetTop.style.opacity = "1";
+                onsetText.textContent = nextWord.o;
+                isAnimating = false;
+            }, 450);
+        }
+
+        function prevCard() {
+            if (isAnimating) return;
+            isAnimating = true;
+            const words = lessons[currentLessonIndex].words;
+            const prevIndex = (currentWordIndex - 1 + words.length) % words.length;
+            const prevWord = words[prevIndex];
+            onsetBottom.textContent = words[currentWordIndex].o;
+            onsetTop.style.transition = "none";
+            onsetTop.style.transform = "rotateX(110deg)";
+            onsetTop.style.opacity = "0";
+            onsetText.textContent = prevWord.o;
+            rimeText.textContent = prevWord.r;
+            void onsetTop.offsetWidth;
+            onsetTop.style.transition = "transform 0.4s ease-out, opacity 0.2s";
+            onsetTop.style.transform = "rotateX(0deg)";
+            onsetTop.style.opacity = "1";
+            setTimeout(() => {
+                currentWordIndex = prevIndex;
+                onsetBottom.textContent = prevWord.o;
+                isAnimating = false;
+            }, 450);
+        }
+
+        initHome();
+    </script>
 </body>
 </html>
