@@ -82,7 +82,7 @@
             </div>
 
             <!-- Left Card -->
-            <div class="relative w-32 sm:w-48 md:w-56 h-52 sm:h-72 md:h-[22rem] perspective-container z-10">
+            <div class="relative w-32 sm:w-48 md:w-56 h-52 sm:h-72 md:h-[22rem] perspective-container z-20">
                 <div class="absolute inset-0 bg-[#5271ff] rounded-2xl flex flex-col items-center justify-center shadow-md border-b-[6px] border-[#3752ca]">
                     <span id="onsetBottom" class="text-white text-[4rem] sm:text-[6rem] md:text-[8rem] font-bold pb-6"></span>
                 </div>
@@ -356,11 +356,25 @@
             }, 500);
         }
 
+        // Smart text resizing for longer word parts (e.g., 'chann', 'smoothl', 'ography')
+        function updateCardText(element, text, isRime) {
+            element.textContent = text;
+            let sizeClass = "";
+            if (text.length >= 6) {
+                sizeClass = "text-[2rem] sm:text-[3rem] md:text-[4rem] tracking-tighter";
+            } else if (text.length >= 4) {
+                sizeClass = "text-[2.5rem] sm:text-[4rem] md:text-[5.5rem] tracking-tight";
+            } else {
+                sizeClass = isRime ? "text-[3rem] sm:text-[5rem] md:text-[6rem] tracking-tight" : "text-[4rem] sm:text-[6rem] md:text-[8rem]";
+            }
+            element.className = `text-white font-bold pb-6 whitespace-nowrap text-center px-1 ${sizeClass}`;
+        }
+
         function updateDisplayInstant() {
             const word = termsData[currentTermIndex].lessons[currentLessonIndex].words[currentWordIndex];
-            rimeText.textContent = word.r;
-            onsetText.textContent = word.o;
-            onsetBottom.textContent = word.o;
+            updateCardText(rimeText, word.r, true);
+            updateCardText(onsetText, word.o, false);
+            updateCardText(onsetBottom, word.o, false);
             onsetTop.style.transition = 'none';
             onsetTop.style.transform = 'rotateX(0deg)';
             onsetTop.style.opacity = '1';
@@ -372,17 +386,21 @@
             const words = termsData[currentTermIndex].lessons[currentLessonIndex].words;
             const nextIndex = (currentWordIndex + 1) % words.length;
             const nextWord = words[nextIndex];
-            onsetBottom.textContent = nextWord.o;
+            
+            updateCardText(onsetBottom, nextWord.o, false);
+            
             onsetTop.style.transition = "transform 0.4s ease-in, opacity 0.2s 0.2s";
             onsetTop.style.transform = "rotateX(110deg)";
             onsetTop.style.opacity = "0";
-            setTimeout(() => { rimeText.textContent = nextWord.r; }, 150);
+            
+            setTimeout(() => { updateCardText(rimeText, nextWord.r, true); }, 150);
+            
             setTimeout(() => {
                 currentWordIndex = nextIndex;
                 onsetTop.style.transition = "none";
                 onsetTop.style.transform = "rotateX(0deg)";
                 onsetTop.style.opacity = "1";
-                onsetText.textContent = nextWord.o;
+                updateCardText(onsetText, nextWord.o, false);
                 isAnimating = false;
             }, 450);
         }
@@ -393,19 +411,25 @@
             const words = termsData[currentTermIndex].lessons[currentLessonIndex].words;
             const prevIndex = (currentWordIndex - 1 + words.length) % words.length;
             const prevWord = words[prevIndex];
-            onsetBottom.textContent = words[currentWordIndex].o;
+            
+            updateCardText(onsetBottom, words[currentWordIndex].o, false);
+            
             onsetTop.style.transition = "none";
             onsetTop.style.transform = "rotateX(110deg)";
             onsetTop.style.opacity = "0";
-            onsetText.textContent = prevWord.o;
-            rimeText.textContent = prevWord.r;
+            
+            updateCardText(onsetText, prevWord.o, false);
+            updateCardText(rimeText, prevWord.r, true);
+            
             void onsetTop.offsetWidth;
+            
             onsetTop.style.transition = "transform 0.4s ease-out, opacity 0.2s";
             onsetTop.style.transform = "rotateX(0deg)";
             onsetTop.style.opacity = "1";
+            
             setTimeout(() => {
                 currentWordIndex = prevIndex;
-                onsetBottom.textContent = prevWord.o;
+                updateCardText(onsetBottom, prevWord.o, false);
                 isAnimating = false;
             }, 450);
         }
