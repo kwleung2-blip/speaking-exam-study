@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>英文發音字族教學卡牌</title>
+    <title>Phonics Flashcards</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -50,26 +50,29 @@
 </head>
 <body class="flex flex-col items-center relative overflow-hidden bg-[#f1f5f9]">
 
-    <!-- ================= 主頁面 (Home View) ================= -->
+    <!-- ================= Home View ================= -->
     <div id="homeView" class="w-full flex flex-col items-center py-8 transition-all duration-500">
         <div class="text-center mb-10 px-4">
             <h1 class="text-4xl md:text-5xl font-bold text-indigo-900 mb-4">
-                <i class="fa-solid fa-shapes text-yellow-500 mr-2"></i> 發音詞組溫習 (英音)
+                <i class="fa-solid fa-shapes text-yellow-500 mr-2"></i> Phonics Flashcards
             </h1>
-            <p class="text-lg text-slate-600 font-medium">請選擇一個詞組開始學習！</p>
+            <p class="text-lg text-slate-600 font-medium">Select a word family to start learning!</p>
         </div>
         
+        <!-- Term Selection Menu -->
+        <div id="termTabs" class="flex flex-wrap justify-center gap-3 md:gap-6 mb-8 px-4 w-full max-w-3xl"></div>
+
         <div id="lessonGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-5xl px-6 pb-24"></div>
     </div>
 
-    <!-- ================= 閃卡頁面 (Flashcard View) ================= -->
+    <!-- ================= Flashcard View ================= -->
     <div id="flashcardView" class="hidden w-full h-full flex flex-col items-center justify-center py-4 md:py-8 transition-all duration-500 opacity-0 no-select">
         
         <div class="w-full max-w-3xl flex items-center justify-between mb-6 md:mb-10 gap-4 px-6">
             <button onclick="goHome()" class="bg-white text-indigo-600 border-2 border-indigo-100 font-bold py-3 px-6 rounded-2xl text-lg shadow-sm active:scale-95 flex items-center gap-2">
-                <i class="fa-solid fa-house"></i> 返回
+                <i class="fa-solid fa-house"></i> Back
             </button>
-            <h2 id="currentLessonTitle" class="text-xl md:text-3xl font-bold text-indigo-900 bg-white/50 px-4 py-2 rounded-xl backdrop-blur-sm">詞組</h2>
+            <h2 id="currentLessonTitle" class="text-xl md:text-3xl font-bold text-indigo-900 bg-white/50 px-4 py-2 rounded-xl backdrop-blur-sm">Set</h2>
         </div>
 
         <div id="touchArea" class="bg-[#3e1b6b] p-6 md:p-12 rounded-[2.5rem] shadow-2xl relative w-[92%] max-w-3xl flex justify-center gap-2 md:gap-8 border-b-[12px] border-[#2a104f] touch-none">
@@ -78,7 +81,7 @@
                 <i class="fa-solid fa-rocket absolute bottom-10 right-10 text-5xl text-white"></i>
             </div>
 
-            <!-- 左側卡牌 -->
+            <!-- Left Card -->
             <div class="relative w-32 sm:w-48 md:w-56 h-52 sm:h-72 md:h-[22rem] perspective-container z-10">
                 <div class="absolute inset-0 bg-[#5271ff] rounded-2xl flex flex-col items-center justify-center shadow-md border-b-[6px] border-[#3752ca]">
                     <span id="onsetBottom" class="text-white text-[4rem] sm:text-[6rem] md:text-[8rem] font-bold pb-6"></span>
@@ -94,7 +97,7 @@
                 </div>
             </div>
 
-            <!-- 右側卡牌 -->
+            <!-- Right Card -->
             <div class="relative w-36 sm:w-56 md:w-64 h-52 sm:h-72 md:h-[22rem] z-10">
                 <div class="absolute inset-0 bg-[#ff5277] rounded-2xl flex flex-col items-center justify-center shadow-md border-b-[6px] border-[#d43758]">
                     <span id="rimeText" class="text-white text-[3rem] sm:text-[5rem] md:text-[6rem] font-bold pb-6 tracking-tight text-center px-2"></span>
@@ -117,59 +120,121 @@
                 <i class="fa-solid fa-chevron-left"></i>
             </button>
             <button onclick="nextCard()" class="bg-indigo-500 text-white font-bold py-5 px-16 rounded-3xl text-2xl transition-all shadow-md active:scale-90 border-b-4 border-indigo-700 active:border-b-0">
-                下一張 <i class="fa-solid fa-chevron-right ml-2"></i>
+                Next <i class="fa-solid fa-chevron-right ml-2"></i>
             </button>
         </div>
+        <p class="mt-8 text-slate-400 font-medium animate-pulse">Swipe left or right to flip the cards!</p>
     </div>
 
     <script>
-        const lessons = [
-            { title: "詞組 1", preview: "fat, bat, cat", words: [{o: "f", r: "at"}, {o: "b", r: "at"}, {o: "c", r: "at"}] },
-            { title: "詞組 2", preview: "cap, jab, wrap, trap", words: [{o: "c", r: "ap"}, {o: "j", r: "ab"}, {o: "wr", r: "ap"}, {o: "tr", r: "ap"}] },
-            { title: "詞組 3", preview: "ham, ram, slam, jam, camp", words: [{o: "h", r: "am"}, {o: "r", r: "am"}, {o: "sl", r: "am"}, {o: "j", r: "am"}, {o: "c", r: "amp"}] },
-            { title: "詞組 4", preview: "can, ran, sand, land, tan, hand", words: [{o: "c", r: "an"}, {o: "r", r: "an"}, {o: "s", r: "and"}, {o: "l", r: "and"}, {o: "t", r: "an"}, {o: "h", r: "and"}] },
-            { title: "詞組 5", preview: "same, came, name", words: [{o: "s", r: "ame"}, {o: "c", r: "ame"}, {o: "n", r: "ame"}] },
-            { title: "詞組 6", preview: "lay, clay, bay, say, they", words: [{o: "l", r: "ay"}, {o: "cl", r: "ay"}, {o: "b", r: "ay"}, {o: "s", r: "ay"}, {o: "th", r: "ey"}] },
-            { title: "詞組 7", preview: "rain, brain, train", words: [{o: "r", r: "ain"}, {o: "br", r: "ain"}, {o: "tr", r: "ain"}] },
-            { title: "詞組 8", preview: "beige, sleigh", words: [{o: "b", r: "eige"}, {o: "sl", r: "eigh"}] },
-            { title: "詞組 9", preview: "eight, weight", words: [{o: "", r: "eight"}, {o: "w", r: "eight"}] },
-            { title: "詞組 10", preview: "red, ted", words: [{o: "r", r: "ed"}, {o: "t", r: "ed"}] },
-            { title: "詞組 11", preview: "met, bet, let", words: [{o: "m", r: "et"}, {o: "b", r: "et"}, {o: "l", r: "et"}] },
-            { title: "詞組 12", preview: "quest, rest, nest, vest", words: [{o: "qu", r: "est"}, {o: "r", r: "est"}, {o: "n", r: "est"}, {o: "v", r: "est"}] },
-            { title: "詞組 13", preview: "head, bread, spread, dead", words: [{o: "h", r: "ead"}, {o: "br", r: "ead"}, {o: "spr", r: "ead"}, {o: "d", r: "ead"}] },
-            { title: "詞組 14", preview: "them, gem, pen", words: [{o: "th", r: "em"}, {o: "g", r: "em"}, {o: "p", r: "en"}] },
-            { title: "詞組 15", preview: "achieve, believe, receive", words: [{o: "ach", r: "ieve"}, {o: "bel", r: "ieve"}, {o: "rec", r: "eive"}] },
-            { title: "詞組 16", preview: "sweet, sheet, keep, need", words: [{o: "sw", r: "eet"}, {o: "sh", r: "eet"}, {o: "k", r: "eep"}, {o: "n", r: "eed"}] },
-            { title: "詞組 17", preview: "team, clean, dream", words: [{o: "t", r: "eam"}, {o: "cl", r: "ean"}, {o: "dr", r: "eam"}] },
-            { title: "詞組 18", preview: "kid, rid, sid, bid", words: [{o: "k", r: "id"}, {o: "r", r: "id"}, {o: "s", r: "id"}, {o: "b", r: "id"}] },
-            { title: "詞組 19", preview: "kit, sit, fit", words: [{o: "k", r: "it"}, {o: "s", r: "it"}, {o: "f", r: "it"}] },
-            { title: "詞組 20", preview: "tim, slim", words: [{o: "t", r: "im"}, {o: "sl", r: "im"}] },
-            { title: "詞組 21", preview: "ill, bill, fill, skill", words: [{o: "", r: "ill"}, {o: "b", r: "ill"}, {o: "f", r: "ill"}, {o: "sk", r: "ill"}] },
-            { title: "詞組 22", preview: "side, wide, hide", words: [{o: "s", r: "ide"}, {o: "w", r: "ide"}, {o: "h", r: "ide"}] },
-            { title: "詞組 23", preview: "kind, find, mind", words: [{o: "k", r: "ind"}, {o: "f", r: "ind"}, {o: "m", r: "ind"}] },
-            { title: "詞組 24", preview: "cry, dry", words: [{o: "cr", r: "y"}, {o: "dr", r: "y"}] },
-            { title: "詞組 25", preview: "why, shy", words: [{o: "wh", r: "y"}, {o: "sh", r: "y"}] },
-            { title: "詞組 26", preview: "low, show, slow, glow", words: [{o: "l", r: "ow"}, {o: "sh", r: "ow"}, {o: "sl", r: "ow"}, {o: "gl", r: "ow"}] },
-            { title: "詞組 27", preview: "road, toad", words: [{o: "r", r: "oad"}, {o: "t", r: "oad"}] },
-            { title: "詞組 28", preview: "boat, coat", words: [{o: "b", r: "oat"}, {o: "c", r: "oat"}] },
-            { title: "詞組 29", preview: "box, fox", words: [{o: "b", r: "ox"}, {o: "f", r: "ox"}] },
-            { title: "詞組 30", preview: "top, chop, stop, cop, rob", words: [{o: "t", r: "op"}, {o: "ch", r: "op"}, {o: "st", r: "op"}, {o: "c", r: "op"}, {o: "r", r: "ob"}] },
-            { title: "詞組 31", preview: "dot, shot, got, pot", words: [{o: "d", r: "ot"}, {o: "sh", r: "ot"}, {o: "g", r: "ot"}, {o: "p", r: "ot"}] },
-            { title: "詞組 32", preview: "rod, trod, plod", words: [{o: "r", r: "od"}, {o: "tr", r: "od"}, {o: "pl", r: "od"}] },
-            { title: "詞組 33", preview: "lock, clock, rock", words: [{o: "l", r: "ock"}, {o: "cl", r: "ock"}, {o: "r", r: "ock"}] },
-            { title: "詞組 34", preview: "on, ron", words: [{o: "", r: "on"}, {o: "r", r: "on"}] },
-            { title: "詞組 35", preview: "all, ball, wall", words: [{o: "", r: "all"}, {o: "b", r: "all"}, {o: "w", r: "all"}] },
-            { title: "詞組 36", preview: "water, wash, watch", words: [{o: "w", r: "ater"}, {o: "w", r: "ash"}, {o: "w", r: "atch"}] },
-            { title: "詞組 37", preview: "look, cook, book", words: [{o: "l", r: "ook"}, {o: "c", r: "ook"}, {o: "b", r: "ook"}] },
-            { title: "詞組 38", preview: "food, mood, good", words: [{o: "f", r: "ood"}, {o: "m", r: "ood"}, {o: "g", r: "ood"}] },
-            { title: "詞組 39", preview: "cub, rub, stub", words: [{o: "c", r: "ub"}, {o: "r", r: "ub"}, {o: "st", r: "ub"}] },
-            { title: "詞組 40", preview: "up, cup, tub, club", words: [{o: "", r: "up"}, {o: "c", r: "up"}, {o: "t", r: "ub"}, {o: "cl", r: "ub"}] },
-            { title: "詞組 41", preview: "but, cut, shut, nut, rut, jut", words: [{o: "b", r: "ut"}, {o: "c", r: "ut"}, {o: "sh", r: "ut"}, {o: "n", r: "ut"}, {o: "r", r: "ut"}, {o: "j", r: "ut"}] },
-            { title: "詞組 42", preview: "honey, money", words: [{o: "h", r: "oney"}, {o: "m", r: "oney"}] },
-            { title: "詞組 43", preview: "sun, fun, gun", words: [{o: "s", r: "un"}, {o: "f", r: "un"}, {o: "g", r: "un"}] },
-            { title: "詞組 44", preview: "hug, mug, bug, rug", words: [{o: "h", r: "ug"}, {o: "m", r: "ug"}, {o: "b", r: "ug"}, {o: "r", r: "ug"}] }
+        const originalLessons = [
+            { title: "focus on -at", preview: "fat, bat, cat", words: [{o: "f", r: "at"}, {o: "b", r: "at"}, {o: "c", r: "at"}] },
+            { title: "focus on -ap", preview: "cap, jab, wrap, trap", words: [{o: "c", r: "ap"}, {o: "j", r: "ab"}, {o: "wr", r: "ap"}, {o: "tr", r: "ap"}] },
+            { title: "focus on -am", preview: "ham, ram, slam, jam, camp", words: [{o: "h", r: "am"}, {o: "r", r: "am"}, {o: "sl", r: "am"}, {o: "j", r: "am"}, {o: "c", r: "amp"}] },
+            { title: "focus on -an", preview: "can, ran, sand, land, tan, hand", words: [{o: "c", r: "an"}, {o: "r", r: "an"}, {o: "s", r: "and"}, {o: "l", r: "and"}, {o: "t", r: "an"}, {o: "h", r: "and"}] },
+            { title: "focus on -ame", preview: "same, came, name", words: [{o: "s", r: "ame"}, {o: "c", r: "ame"}, {o: "n", r: "ame"}] },
+            { title: "focus on -ay", preview: "lay, clay, bay, say, they", words: [{o: "l", r: "ay"}, {o: "cl", r: "ay"}, {o: "b", r: "ay"}, {o: "s", r: "ay"}, {o: "th", r: "ey"}] },
+            { title: "focus on -rain", preview: "rain, brain, train", words: [{o: "r", r: "ain"}, {o: "br", r: "ain"}, {o: "tr", r: "ain"}] },
+            { title: "focus on -eig-", preview: "beige, sleigh", words: [{o: "b", r: "eige"}, {o: "sl", r: "eigh"}] },
+            { title: "focus on -eight", preview: "eight, weight", words: [{o: "", r: "eight"}, {o: "w", r: "eight"}] },
+            { title: "focus on -ed", preview: "red, ted", words: [{o: "r", r: "ed"}, {o: "t", r: "ed"}] },
+            { title: "focus on -et", preview: "met, bet, let", words: [{o: "m", r: "et"}, {o: "b", r: "et"}, {o: "l", r: "et"}] },
+            { title: "focus on -est", preview: "quest, rest, nest, vest", words: [{o: "qu", r: "est"}, {o: "r", r: "est"}, {o: "n", r: "est"}, {o: "v", r: "est"}] },
+            { title: "focus on -ead", preview: "head, bread, spread, dead", words: [{o: "h", r: "ead"}, {o: "br", r: "ead"}, {o: "spr", r: "ead"}, {o: "d", r: "ead"}] },
+            { title: "focus on -em", preview: "them, gem", words: [{o: "th", r: "em"}, {o: "g", r: "em"}] },
+            { title: "focus on -ieve", preview: "achieve, believe, receive", words: [{o: "ach", r: "ieve"}, {o: "bel", r: "ieve"}, {o: "rec", r: "eive"}] },
+            { title: "focus on -ee-", preview: "sweet, sheet, keep, need", words: [{o: "sw", r: "eet"}, {o: "sh", r: "eet"}, {o: "k", r: "eep"}, {o: "n", r: "eed"}] },
+            { title: "focus on -eam", preview: "team, clean, dream", words: [{o: "t", r: "eam"}, {o: "cl", r: "ean"}, {o: "dr", r: "eam"}] },
+            { title: "focus on -id", preview: "kid, rid, sid, bid", words: [{o: "k", r: "id"}, {o: "r", r: "id"}, {o: "s", r: "id"}, {o: "b", r: "id"}] },
+            { title: "focus on -it", preview: "kit, sit, fit", words: [{o: "k", r: "it"}, {o: "s", r: "it"}, {o: "f", r: "it"}] },
+            { title: "focus on -im", preview: "tim, slim", words: [{o: "t", r: "im"}, {o: "sl", r: "im"}] },
+            { title: "focus on -ill", preview: "ill, bill, fill, skill", words: [{o: "", r: "ill"}, {o: "b", r: "ill"}, {o: "f", r: "ill"}, {o: "sk", r: "ill"}] },
+            { title: "focus on -ide", preview: "side, wide, hide", words: [{o: "s", r: "ide"}, {o: "w", r: "ide"}, {o: "h", r: "ide"}] },
+            { title: "focus on -ind", preview: "kind, find, mind", words: [{o: "k", r: "ind"}, {o: "f", r: "ind"}, {o: "m", r: "ind"}] },
+            { title: "focus on -ry", preview: "cry, dry", words: [{o: "cr", r: "y"}, {o: "dr", r: "y"}] },
+            { title: "focus on -hy", preview: "why, shy", words: [{o: "wh", r: "y"}, {o: "sh", r: "y"}] },
+            { title: "focus on -low", preview: "low, show, slow, glow", words: [{o: "l", r: "ow"}, {o: "sh", r: "ow"}, {o: "sl", r: "ow"}, {o: "gl", r: "ow"}] },
+            { title: "focus on -oad", preview: "road, toad", words: [{o: "r", r: "oad"}, {o: "t", r: "oad"}] },
+            { title: "focus on -oat", preview: "boat, coat", words: [{o: "b", r: "oat"}, {o: "c", r: "oat"}] },
+            { title: "focus on -ox", preview: "box, fox", words: [{o: "b", r: "ox"}, {o: "f", r: "ox"}] },
+            { title: "focus on -op", preview: "top, chop, stop, cop, rob", words: [{o: "t", r: "op"}, {o: "ch", r: "op"}, {o: "st", r: "op"}, {o: "c", r: "op"}, {o: "r", r: "ob"}] },
+            { title: "focus on -ot", preview: "dot, shot, got, pot", words: [{o: "d", r: "ot"}, {o: "sh", r: "ot"}, {o: "g", r: "ot"}, {o: "p", r: "ot"}] },
+            { title: "focus on -od", preview: "rod, trod, plod", words: [{o: "r", r: "od"}, {o: "tr", r: "od"}, {o: "pl", r: "od"}] },
+            { title: "focus on -ock", preview: "lock, clock, rock", words: [{o: "l", r: "ock"}, {o: "cl", r: "ock"}, {o: "r", r: "ock"}] },
+            { title: "focus on -on", preview: "on, ron", words: [{o: "", r: "on"}, {o: "r", r: "on"}] },
+            { title: "focus on -all", preview: "all, ball, wall", words: [{o: "", r: "all"}, {o: "b", r: "all"}, {o: "w", r: "all"}] },
+            { title: "focus on wa-", preview: "water, wash, watch", words: [{o: "w", r: "ater"}, {o: "w", r: "ash"}, {o: "w", r: "atch"}] },
+            { title: "focus on -ook", preview: "look, cook, book", words: [{o: "l", r: "ook"}, {o: "c", r: "ook"}, {o: "b", r: "ook"}] },
+            { title: "focus on -ood", preview: "food, mood, good", words: [{o: "f", r: "ood"}, {o: "m", r: "ood"}, {o: "g", r: "ood"}] },
+            { title: "focus on -ub", preview: "cub, rub, stub", words: [{o: "c", r: "ub"}, {o: "r", r: "ub"}, {o: "st", r: "ub"}] },
+            { title: "focus on -up", preview: "up, cup, tub, club", words: [{o: "", r: "up"}, {o: "c", r: "up"}, {o: "t", r: "ub"}, {o: "cl", r: "ub"}] },
+            { title: "focus on -ut", preview: "but, cut, shut, nut, rut, jut", words: [{o: "b", r: "ut"}, {o: "c", r: "ut"}, {o: "sh", r: "ut"}, {o: "n", r: "ut"}, {o: "r", r: "ut"}, {o: "j", r: "ut"}] },
+            { title: "focus on -oney", preview: "honey, money", words: [{o: "h", r: "oney"}, {o: "m", r: "oney"}] },
+            { title: "focus on -un", preview: "sun, fun, gun", words: [{o: "s", r: "un"}, {o: "f", r: "un"}, {o: "g", r: "un"}] },
+            { title: "focus on -ug", preview: "hug, mug, bug, rug", words: [{o: "h", r: "ug"}, {o: "m", r: "ug"}, {o: "b", r: "ug"}, {o: "r", r: "ug"}] }
         ];
 
+        // Term 1 Lessons
+        const term1Lessons = [
+            { title: "focus on b-", preview: "bull, but, bad, bell", words: [{o: "b", r: "ull"}, {o: "b", r: "ut"}, {o: "b", r: "ad"}, {o: "b", r: "ell"}] },
+            { title: "focus on -b", preview: "verb, thumb, dumb, bulb", words: [{o: "ver", r: "b"}, {o: "thum", r: "b"}, {o: "dum", r: "b"}, {o: "bul", r: "b"}] },
+            { title: "focus on bl-", preview: "blank, bleed, block, blue...", words: [{o: "bl", r: "ank"}, {o: "bl", r: "eed"}, {o: "bl", r: "ock"}, {o: "bl", r: "ue"}, {o: "bl", r: "ow"}, {o: "bl", r: "ush"}] },
+            { title: "focus on br-", preview: "bring, bright, bread, brother", words: [{o: "br", r: "ing"}, {o: "br", r: "ight"}, {o: "br", r: "ead"}, {o: "br", r: "other"}] },
+            { title: "focus on p-", preview: "put, pool, pear, pump", words: [{o: "p", r: "ut"}, {o: "p", r: "ool"}, {o: "p", r: "ear"}, {o: "p", r: "ump"}] },
+            { title: "focus on -p", preview: "hop, pop, jump", words: [{o: "ho", r: "p"}, {o: "po", r: "p"}, {o: "jum", r: "p"}] },
+            { title: "focus on pl-", preview: "play, plant, please", words: [{o: "pl", r: "ay"}, {o: "pl", r: "ant"}, {o: "pl", r: "ease"}] },
+            { title: "focus on pr-", preview: "pray, press, present, project", words: [{o: "pr", r: "ay"}, {o: "pr", r: "ess"}, {o: "pr", r: "esent"}, {o: "pr", r: "oject"}] },
+            { title: "focus on c-", preview: "cat, come, cut", words: [{o: "c", r: "at"}, {o: "c", r: "ome"}, {o: "c", r: "ut"}] },
+            { title: "focus on k-", preview: "kick, kangaroo, koala", words: [{o: "k", r: "ick"}, {o: "k", r: "angaroo"}, {o: "k", r: "oala"}] },
+            { title: "focus on qu-", preview: "quack, queen, quick", words: [{o: "qu", r: "ack"}, {o: "qu", r: "een"}, {o: "qu", r: "ick"}] },
+            { title: "focus on cl-", preview: "clap, clean, clock, clinic", words: [{o: "cl", r: "ap"}, {o: "cl", r: "ean"}, {o: "cl", r: "ock"}, {o: "cl", r: "inic"}] },
+            { title: "focus on tw-", preview: "twelve, twins, twist", words: [{o: "tw", r: "elve"}, {o: "tw", r: "ins"}, {o: "tw", r: "ist"}] },
+            { title: "focus on f-", preview: "food, find, fat", words: [{o: "f", r: "ood"}, {o: "f", r: "ind"}, {o: "f", r: "at"}] },
+            { title: "focus on fl-", preview: "flag, flat, flower, flood", words: [{o: "fl", r: "ag"}, {o: "fl", r: "at"}, {o: "fl", r: "ower"}, {o: "fl", r: "ood"}] },
+            { title: "focus on fr-", preview: "fry, fruit, frog, free...", words: [{o: "fr", r: "y"}, {o: "fr", r: "uit"}, {o: "fr", r: "og"}, {o: "fr", r: "ee"}, {o: "fr", r: "ont"}] },
+            { title: "focus on v-", preview: "visit, value, vegetable", words: [{o: "v", r: "isit"}, {o: "v", r: "alue"}, {o: "v", r: "egetable"}] },
+            { title: "focus on -ve", preview: "five, live, active", words: [{o: "fi", r: "ve"}, {o: "li", r: "ve"}, {o: "acti", r: "ve"}] },
+            { title: "focus on ph-", preview: "photo, phone, phase", words: [{o: "ph", r: "oto"}, {o: "ph", r: "one"}, {o: "ph", r: "ase"}] },
+            { title: "focus on th-", preview: "the, thin, thank", words: [{o: "th", r: "e"}, {o: "th", r: "in"}, {o: "th", r: "ank"}] },
+            { title: "focus on thr-", preview: "three, throw, thrill, through", words: [{o: "thr", r: "ee"}, {o: "thr", r: "ow"}, {o: "thr", r: "ill"}, {o: "thr", r: "ough"}] },
+            { title: "focus on h-", preview: "have, head, how, hurt", words: [{o: "h", r: "ave"}, {o: "h", r: "ead"}, {o: "h", r: "ow"}, {o: "h", r: "urt"}] },
+            { title: "focus on ho-", preview: "hour, honest, honour", words: [{o: "ho", r: "ur"}, {o: "ho", r: "nest"}, {o: "ho", r: "nour"}] },
+            { title: "focus on j-", preview: "jump, job, jam, jelly...", words: [{o: "j", r: "ump"}, {o: "j", r: "ob"}, {o: "j", r: "am"}, {o: "j", r: "elly"}, {o: "j", r: "ar"}, {o: "j", r: "uice"}, {o: "J", r: "esus"}] },
+            { title: "focus on ge-", preview: "gel, gentle, general...", words: [{o: "ge", r: "l"}, {o: "ge", r: "ntle"}, {o: "ge", r: "neral"}, {o: "Ge", r: "ography"}] },
+            { title: "focus on ch-", preview: "check, chip, church, change...", words: [{o: "ch", r: "eck"}, {o: "ch", r: "ip"}, {o: "ch", r: "urch"}, {o: "ch", r: "ange"}, {o: "ch", r: "oose"}] }
+        ];
+
+        // Term 2 Lessons
+        const term2Lessons = [
+            { title: "focus on l", preview: "lake, let, life, lot", words: [{o: "l", r: "ake"}, {o: "l", r: "et"}, {o: "l", r: "ife"}, {o: "l", r: "ot"}] },
+            { title: "focus on -el", preview: "tunnel, channel, label", words: [{o: "tunn", r: "el"}, {o: "chann", r: "el"}, {o: "lab", r: "el"}] },
+            { title: "focus on -le", preview: "little, bottle, turtle", words: [{o: "litt", r: "le"}, {o: "bott", r: "le"}, {o: "turt", r: "le"}] },
+            { title: "focus on r", preview: "rate, red, rid, rot, rat...", words: [{o: "r", r: "ate"}, {o: "r", r: "ed"}, {o: "r", r: "id"}, {o: "r", r: "ot"}, {o: "r", r: "at"}, {o: "r", r: "ing"}, {o: "r", r: "iver"}, {o: "r", r: "oad"}] },
+            { title: "focus on m-", preview: "man, mean, mind, mother...", words: [{o: "m", r: "an"}, {o: "m", r: "ean"}, {o: "m", r: "ind"}, {o: "m", r: "other"}, {o: "m", r: "om"}, {o: "m", r: "ail"}, {o: "m", r: "en"}, {o: "m", r: "iss"}] },
+            { title: "focus on -m", preview: "numb, some, gum, tom, rum", words: [{o: "n", r: "umb"}, {o: "s", r: "ome"}, {o: "g", r: "um"}, {o: "t", r: "om"}, {o: "r", r: "um"}] },
+            { title: "focus on n-", preview: "nail, near, night, not", words: [{o: "n", r: "ail"}, {o: "n", r: "ear"}, {o: "n", r: "ight"}, {o: "n", r: "ot"}] },
+            { title: "focus on n/kn", preview: "net, new, nose, none, kneel...", words: [{o: "n", r: "et"}, {o: "n", r: "ew"}, {o: "n", r: "ose"}, {o: "n", r: "one"}, {o: "kn", r: "eel"}, {o: "kn", r: "ife"}, {o: "kn", r: "ight"}, {o: "kn", r: "ee"}, {o: "kn", r: "ock"}, {o: "kn", r: "ot"}] },
+            { title: "focus on w-", preview: "wave, week, with, woman...", words: [{o: "w", r: "ave"}, {o: "w", r: "eek"}, {o: "w", r: "ith"}, {o: "w", r: "oman"}, {o: "w", r: "ater"}, {o: "w", r: "ay"}, {o: "w", r: "est"}] },
+            { title: "focus on wh", preview: "what, which, while, where...", words: [{o: "wh", r: "at"}, {o: "wh", r: "ich"}, {o: "wh", r: "ile"}, {o: "wh", r: "ere"}, {o: "wh", r: "en"}, {o: "wh", r: "istle"}] },
+            { title: "focus on wr-", preview: "wrong, write, wrote, wrist...", words: [{o: "wr", r: "ong"}, {o: "wr", r: "ite"}, {o: "wr", r: "ote"}, {o: "wr", r: "ist"}, {o: "wr", r: "ath"}] },
+            { title: "focus on y", preview: "year, you, yummy, yuck, yard", words: [{o: "y", r: "ear"}, {o: "y", r: "ou"}, {o: "y", r: "ummy"}, {o: "y", r: "uck"}, {o: "y", r: "ard"}] },
+            { title: "focus on -y", preview: "very, fairy, slowly, quickly...", words: [{o: "ver", r: "y"}, {o: "fair", r: "y"}, {o: "slowl", r: "y"}, {o: "quickl", r: "y"}, {o: "smoothl", r: "y"}, {o: "extremel", r: "y"}] },
+            { title: "focus on s-", preview: "sad, set, sit, sure, sob, save", words: [{o: "s", r: "ad"}, {o: "s", r: "et"}, {o: "s", r: "it"}, {o: "s", r: "ure"}, {o: "s", r: "ob"}, {o: "s", r: "ave"}] },
+            { title: "focus on ce-", preview: "cell, centre, cereal, ceiling...", words: [{o: "ce", r: "ll"}, {o: "ce", r: "ntre"}, {o: "ce", r: "real"}, {o: "ce", r: "iling"}, {o: "ce", r: "rtify"}, {o: "ce", r: "rtificate"}] },
+            { title: "focus on -ce", preview: "ace, sentence, space, place", words: [{o: "a", r: "ce"}, {o: "senten", r: "ce"}, {o: "spa", r: "ce"}, {o: "pla", r: "ce"}] },
+            { title: "focus on -se", preview: "cause, case, advise", words: [{o: "cau", r: "se"}, {o: "ca", r: "se"}, {o: "advi", r: "se"}] },
+            { title: "focus on z-", preview: "zebra, zombie, zone, zero...", words: [{o: "z", r: "ebra"}, {o: "z", r: "ombie"}, {o: "z", r: "one"}, {o: "z", r: "ero"}, {o: "z", r: "oo"}, {o: "z", r: "ip"}, {o: "z", r: "oom"}] },
+            { title: "focus on sh-", preview: "shark, sheep, ship, shut...", words: [{o: "sh", r: "ark"}, {o: "sh", r: "eep"}, {o: "sh", r: "ip"}, {o: "sh", r: "ut"}, {o: "sh", r: "arp"}, {o: "sh", r: "e"}, {o: "sh", r: "oe"}, {o: "sh", r: "ow"}] }
+        ];
+
+        // Terms Data Structure
+        const termsData = [
+            { name: "Term 1", lessons: term1Lessons },
+            { name: "Term 2", lessons: term2Lessons },
+            { name: "Term 3", lessons: originalLessons } // Put the existing 44 sets into Term 3
+        ];
+
+        let currentTermIndex = 0; // Default to Term 1
         let currentLessonIndex = 0;
         let currentWordIndex = 0;
         let isAnimating = false;
@@ -190,9 +255,10 @@
         loadVoices();
 
         function speakCurrentWord() {
-            const wordObj = lessons[currentLessonIndex].words[currentWordIndex];
+            const wordObj = termsData[currentTermIndex].lessons[currentLessonIndex].words[currentWordIndex];
             const originalText = wordObj.o + wordObj.r;
             
+            // Add space before 'h' for better pronunciation
             let textToSpeak = originalText;
             if (originalText.toLowerCase().startsWith('h')) {
                 textToSpeak = " " + originalText; 
@@ -202,6 +268,7 @@
             const utterance = new SpeechSynthesisUtterance(textToSpeak);
             utterance.lang = 'en-GB';
             
+            // Prefer high-quality UK voices
             const britishVoice = voices.find(v => v.lang === 'en-GB' && v.name.includes('Daniel'))
                                 || voices.find(v => v.lang === 'en-GB' && v.name.includes('Serena'))
                                 || voices.find(v => v.lang === 'en-GB' && v.name.includes('Google'))
@@ -223,8 +290,32 @@
             if (touchEndX - touchStartX > 50) prevCard();
         }, {passive: true});
 
-        function initHome() {
+        function renderTabs() {
+            const tabsContainer = document.getElementById('termTabs');
+            tabsContainer.innerHTML = '';
+            termsData.forEach((term, index) => {
+                const btn = document.createElement('button');
+                const isActive = index === currentTermIndex;
+                btn.className = `px-6 md:px-8 py-2 md:py-3 rounded-full font-bold text-lg transition-all shadow-sm ${isActive ? 'bg-indigo-600 text-white shadow-md transform scale-105' : 'bg-white text-indigo-500 border-2 border-indigo-100 hover:bg-indigo-50'}`;
+                btn.textContent = term.name;
+                btn.onclick = () => {
+                    currentTermIndex = index;
+                    renderTabs();
+                    renderLessons();
+                };
+                tabsContainer.appendChild(btn);
+            });
+        }
+
+        function renderLessons() {
             lessonGrid.innerHTML = '';
+            const lessons = termsData[currentTermIndex].lessons;
+            
+            if (lessons.length === 0) {
+                lessonGrid.innerHTML = `<div class="col-span-full text-center text-slate-400 font-medium py-12 text-xl">No data available for this term yet (Coming Soon)</div>`;
+                return;
+            }
+
             lessons.forEach((lesson, index) => {
                 const card = document.createElement('div');
                 card.className = "bg-white p-6 rounded-3xl shadow-sm border-2 border-slate-100 active:bg-indigo-50 cursor-pointer transition-all text-center";
@@ -240,10 +331,15 @@
             });
         }
 
+        function initHome() {
+            renderTabs();
+            renderLessons();
+        }
+
         function openLesson(index) {
             currentLessonIndex = index;
             currentWordIndex = 0;
-            currentLessonTitle.textContent = lessons[index].title;
+            currentLessonTitle.textContent = termsData[currentTermIndex].lessons[index].title;
             homeView.classList.add('hidden', 'opacity-0');
             flashcardView.classList.remove('hidden');
             setTimeout(() => flashcardView.classList.remove('opacity-0'), 50);
@@ -261,7 +357,7 @@
         }
 
         function updateDisplayInstant() {
-            const word = lessons[currentLessonIndex].words[currentWordIndex];
+            const word = termsData[currentTermIndex].lessons[currentLessonIndex].words[currentWordIndex];
             rimeText.textContent = word.r;
             onsetText.textContent = word.o;
             onsetBottom.textContent = word.o;
@@ -273,7 +369,7 @@
         function nextCard() {
             if (isAnimating) return;
             isAnimating = true;
-            const words = lessons[currentLessonIndex].words;
+            const words = termsData[currentTermIndex].lessons[currentLessonIndex].words;
             const nextIndex = (currentWordIndex + 1) % words.length;
             const nextWord = words[nextIndex];
             onsetBottom.textContent = nextWord.o;
@@ -294,7 +390,7 @@
         function prevCard() {
             if (isAnimating) return;
             isAnimating = true;
-            const words = lessons[currentLessonIndex].words;
+            const words = termsData[currentTermIndex].lessons[currentLessonIndex].words;
             const prevIndex = (currentWordIndex - 1 + words.length) % words.length;
             const prevWord = words[prevIndex];
             onsetBottom.textContent = words[currentWordIndex].o;
